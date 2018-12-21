@@ -44,9 +44,8 @@ namespace Tetris
 
             timer = new Timer();
             timer.Tick += GameTick;
-            timer.Interval = 10;
+            timer.Interval = 25;
             timer.Start();
-
 
             prevScore = G.score;
         }
