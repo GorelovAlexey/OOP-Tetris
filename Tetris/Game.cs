@@ -20,6 +20,8 @@ namespace Tetris
         FallingFigure currentFigure;
         FallingFigure nextFigure;
 
+
+
         public Game(int columns, int rows, int diff)
         {
             if (rows < 6) rows = 5;
