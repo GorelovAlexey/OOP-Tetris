@@ -32,34 +32,17 @@ namespace Tetris
 
         public void DrawBoardAndFigure(int [,] cup, int[,] figure, int xPos, int yPos, int color)
         {
-            Color[] colors = new Color[9] {
-                Color.Black,        // Поле
-                Color.OrangeRed,    // Г обратная фигура
-                Color.Cyan,         // Г фигура
-                Color.Red,          // z фигура
-                Color.Purple,       // z обратная
-                Color.Yellow,       // Квадрат
-                Color.Lime,         // Палка
-                Color.Blue,         // Т фигура
-                Color.White         // Бонус
-            };
-
-            float cellWidth = picBoxMain.Width / cup.GetLength(0);
-            float cellHeight = picBoxMain.Height / cup.GetLength(1);
-            float cellWidthNext = picBoxNextFigure.Width / 4;
-            float cellHeightNext = picBoxNextFigure.Height / 4;
-
             int columns = cup.GetLength(0);
             int rows = cup.GetLength(1);
             int width = figure.GetLength(0);
             int height = figure.GetLength(1);
-
-
+            
+            float cellWidth = picBoxMain.Width / cup.GetLength(0);
+            float cellHeight = picBoxMain.Height / cup.GetLength(1);
 
             // Рисуем главное поле и фигуру на нем 
             Bitmap bmp = new Bitmap(picBoxMain.Width, picBoxMain.Height);
             Graphics draw = Graphics.FromImage(bmp);
-
 
             for (int x = 0; x < cup.GetLength(0); x++) // рисуем то что есть в стакане
             {
@@ -71,12 +54,12 @@ namespace Tetris
                         else drawRect(draw, x, y, cellWidth, cellHeight, cup[x, y]);
                     }
                     else drawRect(draw, x, y, cellWidth, cellHeight, cup[x, y]);
-
-
-
                 }
             }
         }
+
+
+
 
         void drawRect(Graphics graphics, float x0, float y0, float w, float h, int color)
         {
