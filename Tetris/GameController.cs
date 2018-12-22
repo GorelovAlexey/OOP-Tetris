@@ -67,6 +67,8 @@ namespace Tetris
             }                       
         }
 
+        public event
+
         public void Input(KeyEventArgs e)
         {
             var k = e.KeyCode;

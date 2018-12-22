@@ -32,7 +32,8 @@ namespace Tetris
         IWavePlayer waveOutDevice;
         AudioFileReader audioFileReader;
         bool musicPlaying;
-        GameController GC;   
+        GameController input;
+        GraphicsController output;    
 
 
         /// Фигура имеет цвет
@@ -47,9 +48,12 @@ namespace Tetris
         public void StartGame()
         {
             game = new Game(10, 20, 0); // Строки столбцы уровень сложности
-            GC = new GameController(game);
+            input = new GameController(game);
             game.GameOverEventHandler += game_GameOver;
+            output = new GraphicsController();
             showScores();
+            output.DrawBoardAndFigure(pictureBoxMain, game.cup, game.GetCurrentFigure(), game.GetFigurePos().Item1, game.GetFigurePos().Item2);
+            output.DrawBoardAndFigure(pictureBoxNextFigure, new int[4, 4], game.GetNextFigure(), 0, 0);
         }
         /// Основной тик таймера
         private void timer1_Tick(object sender, EventArgs e)
@@ -61,6 +65,12 @@ namespace Tetris
                 // Если игра на паузе или кончилась выводим соответствующий элемент
                 game.update(timer1.Interval);
                 game.draw(pictureBoxMain, pictureBoxNextFigure);
+
+
+
+                Form1.on
+
+
                 labelScore.Text = game.score.ToString();
                 labelDifficulty.Text = "level" + (1 + game.difficultyLevel).ToString();
                 pauseLabel.Visible = game.paused;

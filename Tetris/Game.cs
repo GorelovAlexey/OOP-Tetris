@@ -20,6 +20,10 @@ namespace Tetris
         FallingFigure currentFigure;
         FallingFigure nextFigure;
 
+        public event EventHandler GameOverEventHandler;
+        public event EventHandler NextFigureChanged;
+        public event EventHandler CupChanged;
+
 
 
         public Game(int columns, int rows, int diff)
@@ -31,6 +35,8 @@ namespace Tetris
 
             cup = new int[rows, columns];
             RND = new Random(DateTime.Now.Millisecond);
+
+            SetFigures();
         }
 
         // Действия которые может совершать игрок
@@ -60,7 +66,19 @@ namespace Tetris
             currentFigure.RotateRight(cup);
         }
 
-        
+        public int[,] GetCurrentFigure ()
+        {
+            return currentFigure.GetForm();
+        }
+        public int[,] GetNextFigure ()
+        {
+            return nextFigure.GetForm();
+        }
+        public Tuple<int, int> GetFigurePos ()
+        {
+            return new Tuple<int, int>(currentFigure.posX, currentFigure.posY);
+        }
+
         public void SetFigures() // Смена фигур 
         {
             if (nextFigure != null)
@@ -100,7 +118,7 @@ namespace Tetris
 
         }
         
-        protected virtual void OnGameOverReached(EventArgs e) // событие которое просходит когда игра завершается
+        void OnGameOverReached(EventArgs e) // событие которое просходит когда игра завершается
         {
             EventHandler handler = GameOverEventHandler;
             if (handler != null)
@@ -108,7 +126,16 @@ namespace Tetris
                 handler(this, e);
             }
         }
-        public event EventHandler GameOverEventHandler;
+
+        void OnNextFigureChanged(EventArgs e)
+        {
+            EventHandler handler = NextFigureChanged;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+        void On
 
 
 

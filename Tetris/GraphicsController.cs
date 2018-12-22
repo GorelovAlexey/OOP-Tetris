@@ -21,27 +21,23 @@ namespace Tetris
                 Color.Blue,         // Т фигура
                 Color.White         // Бонус
             };
-        PictureBox picBoxMain;
-        PictureBox picBoxNextFigure;
 
-        public GraphicsController(PictureBox _main, PictureBox _next)
+        public GraphicsController()
         {
-            picBoxMain = _main;
-            picBoxNextFigure = _next;
         }
 
-        public void DrawBoardAndFigure(int [,] cup, int[,] figure, int xPos, int yPos, int color)
+        public void DrawBoardAndFigure(PictureBox P, int [,] cup, int[,] figure, int xPos, int yPos)
         {
             int columns = cup.GetLength(0);
             int rows = cup.GetLength(1);
             int width = figure.GetLength(0);
             int height = figure.GetLength(1);
             
-            float cellWidth = picBoxMain.Width / cup.GetLength(0);
-            float cellHeight = picBoxMain.Height / cup.GetLength(1);
+            float cellWidth = P.Width / cup.GetLength(0);
+            float cellHeight = P.Height / cup.GetLength(1);
 
             // Рисуем главное поле и фигуру на нем 
-            Bitmap bmp = new Bitmap(picBoxMain.Width, picBoxMain.Height);
+            Bitmap bmp = new Bitmap(P.Width, P.Height);
             Graphics draw = Graphics.FromImage(bmp);
 
             for (int x = 0; x < cup.GetLength(0); x++) // рисуем то что есть в стакане
@@ -50,96 +46,22 @@ namespace Tetris
                 {
                     if (x >= xPos && x < xPos + width && y >= yPos && y < yPos + height)
                     {
-                        if (figure[x - xPos, y - yPos] != 0) drawRect(draw, x, y, cellWidth, cellHeight, color);
+                        if (figure[x - xPos, y - yPos] != 0) drawRect(draw, x, y, cellWidth, cellHeight, figure[x - xPos, y - yPos]);
                         else drawRect(draw, x, y, cellWidth, cellHeight, cup[x, y]);
                     }
                     else drawRect(draw, x, y, cellWidth, cellHeight, cup[x, y]);
                 }
             }
-        }
 
-
-
-
+            P.Image = bmp;
+        }        
         void drawRect(Graphics graphics, float x0, float y0, float w, float h, int color)
         {
             SolidBrush brush = new SolidBrush(colors[color]);
             RectangleF rect = new RectangleF(x0, y0, w, h);
             graphics.FillRectangle(brush, rect);
         }
-
-
-        public void DrawFigure()
-        {
-
-        }
-
-
-
-        public void draw(PictureBox pictureBoxMain, PictureBox pictureBoxNextFigure) // процедура вывода на заданные элементы 
-        {
-
-
-            
-
-
-            if (currentFigure != null) // если есть падающая фигруа - рисуем ее 
-            {
-                brush = new SolidBrush(colors[currentFigure.color]);
-                if (currentFigure.GetType() == typeof(Bonus)) // рисуем одну клетку
-                {
-                    rect = new RectangleF(currentFigure.posX * cellWidth, currentFigure.posY * cellHeight, cellWidth, cellHeight);
-                    draw.FillRectangle(brush, rect);
-                }
-                else
-                {
-                    FigureForm form = currentFigure.currentForm();
-
-                    for (int x = 0; x < form.maxX; x++)
-                    {
-                        for (int y = 0; y < form.maxY; y++)
-                        {
-                            if (form.get(x, y))
-                            {
-                                rect = new RectangleF((currentFigure.posX + x) * cellWidth, (currentFigure.posY + y) * cellHeight, cellWidth, cellHeight);
-                                draw.FillRectangle(brush, rect);
-                            }
-                        }
-                    }
-                }
-            }
-            pictureBoxMain.Image = bmp;
-
-            // рисуем следующую фигуру в своем окне
-            bmp = new Bitmap(pictureBoxNextFigure.Width, pictureBoxNextFigure.Height);
-            draw = Graphics.FromImage(bmp);
-            if (nextFigure != null)
-            {
-                brush = new SolidBrush(colors[nextFigure.color]);
-                if (nextFigure.GetType() == typeof(Bonus)) // рисуем одну клетку
-                {
-                    rect = new RectangleF(cellWidth, cellHeight, cellWidth, cellHeight);
-                    draw.FillRectangle(brush, rect);
-                }
-                else
-                {
-                    FigureForm form = nextFigure.currentForm();
-
-                    for (int x = 0; x < form.maxX; x++)
-                    {
-                        for (int y = 0; y < form.maxY; y++)
-                        {
-                            if (form.get(x, y))
-                            {
-                                rect = new RectangleF(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-                                draw.FillRectangle(brush, rect);
-                            }
-                        }
-                    }
-                }
-            }
-            pictureBoxNextFigure.Image = bmp;
-        }
+                
     }
 }
 
