@@ -68,12 +68,12 @@ namespace Tetris
                     if (x >= xPos && x < xPos + width && y >= yPos && y < yPos + height)
                     {
                         if (figure[x - xPos, y - yPos] != 0) drawRect(draw, x, y, cellWidth, cellHeight, color);
-                        else drawRect(draw, x, y, cellWidth, cellHeight, color)
-
+                        else drawRect(draw, x, y, cellWidth, cellHeight, cup[x, y]);
                     }
+                    else drawRect(draw, x, y, cellWidth, cellHeight, cup[x, y]);
 
 
-                    
+
                 }
             }
         }
