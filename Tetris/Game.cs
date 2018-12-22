@@ -42,11 +42,15 @@ namespace Tetris
         // Действия которые может совершать игрок
         public void Left()
         {
+            var x = currentFigure.posX;
             currentFigure.moveLeft(cup);
+            if (x != currentFigure.posX) OnCupChanged(new EventArgs());            
         }
         public void Right()
         {
+            var x = currentFigure.posX;
             currentFigure.MoveRight(cup);
+            if (x != currentFigure.posX) OnCupChanged(new EventArgs());
         }
         public void Down()
         {
@@ -55,15 +59,22 @@ namespace Tetris
             {
                 cup = currentFigure.Put(cup);
                 SetFigures();
+                if (!currentFigure.Check(cup)) GameOver();
+                OnNextFigureChanged(new EventArgs());
             }
+            OnCupChanged(new EventArgs());
         }
         public void RotateL()
         {
+            var st = currentFigure.state;
             currentFigure.RotateLeft(cup);
+            if (st != currentFigure.state) OnCupChanged(new EventArgs());
         }
         public void RotateR()
         {
+            var st = currentFigure.state;
             currentFigure.RotateRight(cup);
+            if (st != currentFigure.state) OnCupChanged(new EventArgs());
         }
 
         public int[,] GetCurrentFigure ()
@@ -79,6 +90,11 @@ namespace Tetris
             return new Tuple<int, int>(currentFigure.posX, currentFigure.posY);
         }
 
+        void GameOver()
+        {
+            gameOver = true;
+            OnGameOverReached(new EventArgs());
+        }
         public void SetFigures() // Смена фигур 
         {
             if (nextFigure != null)
@@ -135,14 +151,21 @@ namespace Tetris
                 handler(this, e);
             }
         }
-        void On
+        void OnCupChanged(EventArgs e)
+        {
+            EventHandler handler = CupChanged;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
 
 
 
         abstract class FallingFigure
         {
             protected List<bool[,]> forms;
-            protected int state;
+            public int state { get; protected set; }
             const int emptyColor = 0; 
             public int color { get; protected set; } // Код для цвета 0 или любой другой стандартный, другие задаются
             public int posX { get; protected set; }
