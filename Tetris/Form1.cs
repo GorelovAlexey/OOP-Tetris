@@ -36,9 +36,6 @@ namespace Tetris
         GraphicsController output;    
 
 
-        /// Фигура имеет цвет
-        /// фигура перемещается вниз - в стакане
-        /// фигура вращается
         public Form1()
         {
             InitializeComponent();
@@ -48,32 +45,48 @@ namespace Tetris
         public void StartGame()
         {
             game = new Game(10, 20, 0); // Строки столбцы уровень сложности
-            input = new GameController(game);
             game.GameOverEventHandler += game_GameOver;
+            game.CupChanged += Game_CupChanged;
+            game.NextFigureChanged += Game_NextFigureChanged;
+
+            input = new GameController(game);
+            input.GamePausedHandler += Input_GamePausedHandler;
+
             output = new GraphicsController();
+
+            game.SetFigures();
             showScores();
-            output.DrawBoardAndFigure(pictureBoxMain, game.cup, game.GetCurrentFigure(), game.GetFigurePos().Item1, game.GetFigurePos().Item2);
+        }
+
+        private void Input_GamePausedHandler(object sender, EventArgs e)
+        {
+            pauseLabel.Visible = input.paused;
+        }
+        void UpdateNextFigure()
+        {
             output.DrawBoardAndFigure(pictureBoxNextFigure, new int[4, 4], game.GetNextFigure(), 0, 0);
         }
+        private void Game_NextFigureChanged(object sender, EventArgs e)
+        {
+            UpdateNextFigure();
+        }
+        void UpdateCup()
+        {
+            output.DrawBoardAndFigure(pictureBoxMain, game.cup, game.GetCurrentFigure(), game.GetFigurePos().Item1, game.GetFigurePos().Item2);
+        }
+
+        private void Game_CupChanged(object sender, EventArgs e)
+        {
+            UpdateCup();
+        }
+
         /// Основной тик таймера
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (game != null)
             {
-                // Сообщаем игре сколько прошло времени
-                // Перерисовываем графику, счет, уровень сложности
-                // Если игра на паузе или кончилась выводим соответствующий элемент
-                game.update(timer1.Interval);
-                game.draw(pictureBoxMain, pictureBoxNextFigure);
-
-
-
-                Form1.on
-
-
                 labelScore.Text = game.score.ToString();
-                labelDifficulty.Text = "level" + (1 + game.difficultyLevel).ToString();
-                pauseLabel.Visible = game.paused;
+                labelDifficulty.Text = "level 0";
                 labelGameEnded.Visible = game.gameOver;
                 if (game.gameOver) pauseLabel.Visible = false;
             }
@@ -81,6 +94,7 @@ namespace Tetris
 
         /// Код для претягивания экрана за края 
         /// Перемещение за держа за саму форму
+        /// ОБЬЕДИНИТЬ???????????????????
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
             isDragging = true;
@@ -126,20 +140,7 @@ namespace Tetris
         // считывание при нажатии кнопки
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            Controller c1 = new Controller();
-            c1.Init(); 
-            if ((e.KeyCode == Keys.A) || (e.KeyCode == Keys.Left)) { c1.moveLeft = true; c1.captured = true; }
-            if ((e.KeyCode == Keys.D) || (e.KeyCode == Keys.Right)) { c1.moveRight = true; c1.captured = true; }
-            if ((e.KeyCode == Keys.S) || (e.KeyCode == Keys.Down) || (e.KeyCode == Keys.Space)) { c1.goDown = true; c1.captured = true; }
-            if ((e.KeyCode == Keys.X)) { c1.turnRight = true; c1.captured = true; }
-            if ((e.KeyCode == Keys.Z)) { c1.turnLeft = true; c1.captured = true; }
-            if (e.KeyCode == Keys.Space) { c1.pause = true; c1.captured = true; }
-            game.input(c1);
-            pauseLabel.Visible = game.paused;
-            if ((e.KeyCode == Keys.R) && (game.gameOver))
-            {
-                StartGame();
-            }
+            input.Input(e);
         }
         
         public void loadScores() /// считываем данные из файла и записываем в список scoreBoard
@@ -236,7 +237,7 @@ namespace Tetris
 
         private void labelHowToPlay_Click(object sender, EventArgs e)
         {
-            if (game != null) game.paused = true;
+            if (input != null) input.Input(new KeyEventArgs(Keys.Space));
 
             string text;
             text = "                                Тетрис Клон\n";
@@ -295,730 +296,7 @@ namespace Tetris
             }
         }
     }
-
-
-
-
-
-
-    public struct Controller
-    {
-        public bool captured;
-        public bool moveLeft;
-        public bool moveRight;
-        public bool goDown;
-        public bool turnRight;
-        public bool turnLeft;
-        public bool pause;
-        public void Init()
-        {
-            captured = false;
-            moveLeft = false;
-            moveRight = false;
-            goDown = false;
-            turnRight = false;
-            turnLeft = false;
-            pause = false;
-        }
-    }
-
     
-
-
-    // Игровое поле - стакан, в котором размещаются фигуры
-    class Stakan
-    {
-        // размеры
-        public int rows { get; private set; }
-        public int columns { get; private set; }
-        private bool[,] maskPlaced;  // массив состояний клеток - пустая или заполненная
-        private int[,] maskColor; // цветовой код каждой клетки разные коды разные цвета
-        public Stakan(int _col, int _rows)  
-        {
-            columns = _col;
-            rows = _rows;
-            maskPlaced = new bool[_col, _rows]; // false - пусто
-            maskColor = new int[_col, _rows];  // 0 - стандартный цвет
-        }
-        public void place(int x, int y, int color) // Поместить клетку в стакан 
-        {
-            maskPlaced[x, y] = true;
-            maskColor[x, y] = color;
-        }
-        public bool check(int x, int y) // Проверить занята ли клетка 
-        {
-            return maskPlaced[x, y];
-        }
-        public int color(int x, int y) // Вернуть номер цвета клетки 
-        {
-            return maskColor[x, y];
-        }
-        public int clearRows() // очищаем заполненные ряды, переносим, возвращаем число очищенных рядов для подсчета очков
-        {
-            int count = 0;
-            int r = rows - 1;
-
-            while (r - count >= 0) // идем по рядам cнизу вверх, очищаем заполненные ряды, 
-            {
-                bool full = true;
-                for (int i = 0; i < columns; i++)
-                {
-                    if (!check(i, r)) full = false; // в ряду есть пустая строчка - чистить ряд  не нужно
-                }
-                if (full) // ряд нужно очистить
-                {
-                    for (int x = 0; x < columns; x++) // чистим заполненный ряд
-                    {
-                        maskPlaced[x, r] = false;
-                        maskColor[x, r] = 0;
-                    }
-                    count++;
-                    for (int y = r; y > 0; y--) // перенос всех рядов на 1 вниз из-за очистки
-                    {
-                        for (int x = 0; x < columns; x++)
-                        {
-                            maskPlaced[x, y] = maskPlaced[x, y - 1];
-                            maskColor[x, y] = maskColor[x, y - 1];
-                        }
-                    }
-                    for (int x = 0; x < columns; x++) // 0вой ряд очищается 
-                    {
-                        maskPlaced[x, 0] = false;
-                        maskColor[x, 0] = 0;
-                    }
-                }
-                else r--; // если ряд не чистили идем на 1 вверх
-            }
-            return count;
-        }
-    }
-    // Класс игры
-    class GameN
-    {
-        // Состояние игры
-        public bool paused;
-        public bool gameOver { get; private set; }
-        // Таймеры 
-        int timeForTurn;
-        int timerCurrent;
-        int timeForTurnMax;
-        int timerTotal;
-        //
-        public int score { get; private set; }
-        int scorePerRow = 10;
-        // inputs
-        Controller controller;
-        private int[] difficultyLevels = new int[] { 550, 500, 450, 400, 350, 300, 250, 200, 150, 100 };
-        public int difficultyLevel { get; private set; } = 0;
-        int difficultyRowsTimer = 0;
-        int difficultyRowsToLvlUp = 4;
-        int difficultyIncreceNextLvlUp = 1;
-
-
-        // поле игры
-        public Stakan stakan { get; private set; }
-        private Random RND;
-        // фигура которая падает сейчас и следующая за ней
-        public FallingFigure currentFigure { get; private set; }
-        public FallingFigure nextFigure { get; private set; }
-
-        public GameN(int columns, int rows, int diff)
-        {
-            if (rows < 6) rows = 5;
-            if (rows > 100) rows = 100;
-            if (columns < 6) columns = 5;
-            if (columns > 100) columns = 100;
-
-            difficultyLevel = diff;
-            timeForTurn = difficultyLevels[difficultyLevel];
-            timeForTurnMax = timeForTurn * 2 + 200;
-
-            stakan = new Stakan(columns, rows);
-            RND = new Random(DateTime.Now.Millisecond);
-            paused = true;
-        }
-
-        // Основной цикл игры 
-        public void update(int ms) // ms - время с предидущего обновления
-        {
-            if (currentFigure == null) // если начало игры или предидущая фигура была поставлена
-            {
-                if (!gameOver)
-                {
-                    setFigures();
-                    gameOver = !currentFigure.spawn();
-                    if (gameOver) OnGameOverReached(EventArgs.Empty); // событие что игра закончилась
-                }                
-            }
-
-            /// основной цикл игры - если игра не на паузе и не закончилась
-            if (!paused && !gameOver)
-            {
-                // считывание управления и выполнение поворотов или движения в бок, при этом дается дополнительное время 
-                if (controller.captured)
-                {
-                    if (controller.moveRight) { currentFigure.moveRight(); timerCurrent = -100; }
-                    if (controller.moveLeft) { currentFigure.moveLeft(); timerCurrent = -100; }
-                    if (controller.goDown) { timerCurrent = timeForTurn; } // пользователь хочет ускорить передвижение фигуры
-                    if (controller.turnLeft) { currentFigure.rotateLeft(); timerCurrent = -100; }
-                    if (controller.turnRight) { currentFigure.rotateRight(); timerCurrent = -100; }
-                    controller.Init();
-                }
-                timerCurrent += ms;
-                timerTotal += ms;                
-                if (timerCurrent >= timeForTurn || timerTotal >= timeForTurnMax) /// Окончание 1 хода игры
-                {
-                    currentFigure.moveDown(); 
-                    bool placed = !currentFigure.check();
-                    if (placed) /// Фигура не может двигаться и записана в стакан, добавляем очки
-                    {
-                        float scoreMult = 1 + (difficultyLevels[0] - difficultyLevels[difficultyLevel])/100;
-                        int rowsCleared = stakan.clearRows();
-                        if (rowsCleared > 0)
-                        {
-                            score += (int)(scorePerRow * rowsCleared * scoreMult);
-                            difficultyRowsTimer += rowsCleared;
-                            if ((difficultyRowsTimer >= difficultyRowsToLvlUp) && (difficultyLevel != difficultyLevels.Length - 1 )) 
-                            {   /// Меняем уровень сложности если он не последний 
-                                difficultyLevel++;
-                                timeForTurn = difficultyLevels[difficultyLevel];  // Меняем время на ход в зависимости от уровня сложности
-                                timeForTurnMax = timeForTurn * 2 + 200;
-                                difficultyRowsTimer -= difficultyRowsToLvlUp;
-                                difficultyRowsToLvlUp += difficultyIncreceNextLvlUp;
-                            }
-                        }
-                        currentFigure = null;
-                    }
-                    timerCurrent = 0;
-                    timerTotal = 0;
-                }
-            }
-        }
-        public void input(Controller a) // ввод
-        {
-            controller = a;
-            if (a.pause) { paused = !paused; }
-        }
-        public void setFigures() // Смена фигур 
-        {
-            if (nextFigure != null)
-            {
-                currentFigure = nextFigure;
-            }
-            else
-            {
-                switch (RND.Next(7))
-                {
-                    case 0:
-                        currentFigure = new FigureGE(stakan);
-                        break;
-                    case 1:
-                        currentFigure = new FigureGErev(stakan);
-                        break;
-                    case 2:
-                        currentFigure = new FigureZIG(stakan);
-                        break;
-                    case 3:
-                        currentFigure = new FigureZIGrev(stakan);
-                        break;
-                    case 4:
-                        currentFigure = new FigureSQ(stakan);
-                        break;
-                    case 5:
-                        currentFigure = new FigureLINE(stakan);
-                        break;
-                    case 6:
-                        currentFigure = new FigureT(stakan);
-                        break;
-                }
-            }
-            switch (RND.Next(8))
-            {
-                case 0:
-                    nextFigure = new FigureGE(stakan);
-                    break;
-                case 1:
-                    nextFigure = new FigureGErev(stakan);
-                    break;
-                case 2:
-                    nextFigure = new FigureZIG(stakan);
-                    break;
-                case 3:
-                    nextFigure = new FigureZIGrev(stakan);
-                    break;
-                case 4:
-                    nextFigure = new FigureSQ(stakan);
-                    break;
-                case 5:
-                    nextFigure = new FigureLINE(stakan);
-                    break;
-                case 6:
-                    nextFigure = new FigureT(stakan);
-                    break;
-                case 7:
-                    nextFigure = new Bonus(stakan);
-                    break;
-            }
-        }
-
-        public void draw(PictureBox pictureBoxMain, PictureBox pictureBoxNextFigure) // процедура вывода на заданные элементы 
-        {
-            Color[] colors = new Color[9] {
-                Color.Black,        // Поле
-                Color.OrangeRed,    // Г обратная фигура
-                Color.Cyan,         // Г фигура
-                Color.Red,          // z фигура
-                Color.Purple,       // z обратная
-                Color.Yellow,       // Квадрат
-                Color.Lime,         // Палка
-                Color.Blue,         // Т фигура
-                Color.White         // Бонус
-            };
-            SolidBrush brush;
-            RectangleF rect;
-
-            float cellWidth = pictureBoxMain.Width / stakan.columns;
-            float cellHeight = pictureBoxMain.Height / stakan.rows;
-            float cellWidthNext = pictureBoxNextFigure.Width / 4;
-            float cellHeightNext = pictureBoxNextFigure.Height / 4;
-
-            /// Рисуем главное поле и фигуру на нем 
-            Bitmap bmp = new Bitmap(pictureBoxMain.Width, pictureBoxMain.Height);
-            Graphics draw = Graphics.FromImage(bmp);
-
-            for (int x = 0; x < stakan.columns; x++) // рисуем то что есть в стакане
-            {
-                for (int y = 0; y < stakan.rows; y++)
-                {
-                    brush = new SolidBrush(colors[stakan.color(x, y)]);
-                    rect = new RectangleF(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-                    draw.FillRectangle(brush, rect);
-                }
-            }
-
-            if (currentFigure != null) // если есть падающая фигруа - рисуем ее 
-            {
-                brush = new SolidBrush(colors[currentFigure.color]);
-                if (currentFigure.GetType() == typeof(Bonus)) // рисуем одну клетку
-                {
-                    rect = new RectangleF(currentFigure.posX * cellWidth, currentFigure.posY * cellHeight, cellWidth, cellHeight);
-                    draw.FillRectangle(brush, rect);
-                }
-                else
-                {
-                    FigureForm form = currentFigure.currentForm();
-
-                    for (int x = 0; x < form.maxX; x++)
-                    {
-                        for (int y = 0; y < form.maxY; y++)
-                        {
-                            if (form.get(x, y))
-                            {
-                                rect = new RectangleF((currentFigure.posX + x) * cellWidth, (currentFigure.posY + y) * cellHeight, cellWidth, cellHeight);
-                                draw.FillRectangle(brush, rect);
-                            }
-                        }
-                    }
-                }
-            }
-            pictureBoxMain.Image = bmp;
-
-            // рисуем следующую фигуру в своем окне
-            bmp = new Bitmap(pictureBoxNextFigure.Width, pictureBoxNextFigure.Height);
-            draw = Graphics.FromImage(bmp);
-            if (nextFigure != null)
-            {
-                brush = new SolidBrush(colors[nextFigure.color]);
-                if (nextFigure.GetType() == typeof(Bonus)) // рисуем одну клетку
-                {
-                    rect = new RectangleF(cellWidth, cellHeight, cellWidth, cellHeight);
-                    draw.FillRectangle(brush, rect);
-                }
-                else
-                {
-                    FigureForm form = nextFigure.currentForm();
-
-                    for (int x = 0; x < form.maxX; x++)
-                    {
-                        for (int y = 0; y < form.maxY; y++)
-                        {
-                            if (form.get(x, y))
-                            {
-                                rect = new RectangleF(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
-                                draw.FillRectangle(brush, rect);
-                            }
-                        }
-                    }
-                }
-            }
-            pictureBoxNextFigure.Image = bmp;
-        }
-
-
-        protected virtual void OnGameOverReached(EventArgs e) // событие которое просходит когда игра завершается
-        {
-            EventHandler handler = GameOverEventHandler; 
-            if (handler != null)
-            {
-                handler(this, e);
-            }            
-        }
-
-        public event EventHandler GameOverEventHandler;
-
-    }
-    // Структура содержащая форму фигуры
-    public struct FigureForm
-    {
-        public bool[] mask // двумерный массив в одномерном стороны rasmX и mask/rasmX
-        { get; private set; }
-        public int maxX
-        { get; private set; }
-        public int maxY
-        { get; private set; }
-
-        public FigureForm(bool[] a, int b)
-        {
-            if (a.Length % b != 0)
-            {
-                MessageBox.Show("FigureForm init error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            mask = a;
-            maxX = b;
-            maxY = a.Length / b;
-        }
-        public FigureForm(int[] a, int b)
-        {
-            if (a.Length % b != 0)
-            {
-                MessageBox.Show("FigureForm init error", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-
-            mask = new bool[a.Length];
-            for (int i = 0; i < a.Length; i++)
-            {
-                if (a[i] == 0)
-                {
-                    mask[i] = false;
-                }
-                else
-                {
-                    mask[i] = true;
-                }
-            }
-            maxX = b;
-            maxY = a.Length / b;
-        }
-
-        public bool get(int x, int y)
-        {
-            return mask[x + y * maxX];
-        }
-    }
-
-    abstract class FallingFigure
-    {
-        public int color { get; protected set; } // Код для цвета 0 или любой другой стандартный, другие задаются
-        public int posX { get; protected set; }
-        public int posY { get; protected set; }
-        protected Stakan stakan;
-
-        public FallingFigure(Stakan st)
-        {
-            stakan = st;
-        }
-
-        public abstract bool check(); // проверка свободна ли текущая позиция в стакане
-        public abstract bool spawn(); // true - фигура поставилась игра продолжается, false - некуда ставить игра окончена
-        public abstract void place();
-        public abstract void rotateRight();
-        public abstract void rotateLeft();
-        public abstract FigureForm currentForm();
-        public void moveRight()
-        {
-            posX += 1;
-            if (!check())
-            {
-                posX -= 1;
-            }
-        }
-        public void moveLeft()
-        {
-            posX -= 1;
-            if (!check())
-            {
-                posX += 1;
-            }
-        }
-        public void moveDown()
-        {
-            posY += 1;
-            if (!check())
-            {
-                posY -= 1;
-                place();
-            }
-        }
-
-    } // класс для фигур которые падают в стакане
-
-    abstract class FallingFigureStandart : FallingFigure
-    {
-        protected FigureForm[] forms;
-        protected int state;
-        protected int states;
-
-        public FallingFigureStandart(Stakan st) : base(st) { }
-
-        public override bool check()
-        {
-            if (((posX + forms[state].maxX) > stakan.columns) ||
-                    ((posY + forms[state].maxY) > stakan.rows)) return false;
-            if (posX < 0 || posY < 0) return false;
-
-            for (int x = 0; x < forms[state].maxX; x++)
-            {
-                for (int y = 0; y < forms[state].maxY; y++)
-                {
-                    if (forms[state].get(x, y) && stakan.check(posX + x, posY + y))
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-        public override bool spawn()
-        {
-            posX = (stakan.columns - forms[state].maxX) / 2;
-            posY = 0;
-
-            if (!check()) return false;
-            return true;
-        }
-        public override void rotateLeft()
-        {
-            int initState = state;
-            state -= 1;
-            if (state < 0) state = states - 1;
-
-            if (!check())
-            {
-                int place = posX;
-
-                for (int i = 0; i < 3; i++)
-                {
-                    posX--;
-                    if (check()) break;
-                }
-                if (!check())
-                {
-                    posX = place;
-                    state = initState;
-                }
-            }
-        }
-        public override void rotateRight()
-        {
-            int initState = state;
-            state += 1;
-            if (state >= states) state = 0;
-
-            if (!check())
-            {
-                int place = posX;
-
-                for (int i = 0; i < 3; i++)
-                {
-                    posX--;
-                    if (check()) break;
-                }
-                if (!check())
-                {
-                    posX = place;
-                    state = initState;
-                }
-            }
-        }
-        public override void place()
-        {
-            for (int x = 0; x < forms[state].maxX; x++)
-            {
-                for (int y = 0; y < forms[state].maxY; y++)
-                {
-                    if (forms[state].get(x, y))
-                    {
-                        stakan.place(posX + x, posY + y, color);
-                    }
-                }
-            }
-        }
-        public override FigureForm currentForm()
-        {
-            return forms[state];
-        }
-    } // класические фигуры, которые могут вращаться 
-
-    class FigureGE : FallingFigureStandart
-    {
-        public FigureGE(Stakan st) : base(st)
-        {
-            states = 4;
-            forms = new FigureForm[states];
-            forms[0] = new FigureForm(new int[] {   1, 1, 1,
-                                                        0, 0, 1 }, 3);
-            forms[1] = new FigureForm(new int[] {   0, 1,
-                                                        0, 1,
-                                                        1, 1}, 2);
-            forms[2] = new FigureForm(new int[] {   1, 0, 0,
-                                                        1, 1, 1 }, 3);
-            forms[3] = new FigureForm(new int[] {   1, 1,
-                                                        1, 0,
-                                                        1, 0}, 2);
-            color = 1;
-            
-        }
-    }
-    class FigureGErev : FallingFigureStandart
-    {
-        public FigureGErev(Stakan st) : base(st)
-        {
-            states = 4;
-            forms = new FigureForm[states];
-            forms[0] = new FigureForm(new int[] {   1, 1, 1,
-                                                        1, 0, 0 }, 3);
-            forms[1] = new FigureForm(new int[] {   1, 1,
-                                                        0, 1,
-                                                        0, 1}, 2);
-            forms[2] = new FigureForm(new int[] {   0, 0, 1,
-                                                        1, 1, 1 }, 3);
-            forms[3] = new FigureForm(new int[] {   1, 0,
-                                                        1, 0,
-                                                        1, 1}, 2);
-            color = 2;
-        }
-    }
-    class FigureZIG : FallingFigureStandart
-    {
-        public FigureZIG(Stakan st) : base(st)
-        {
-            states = 2;
-            forms = new FigureForm[states];
-            forms[0] = new FigureForm(new int[] {   0, 1, 1,
-                                                        1, 1, 0 }, 3);
-            forms[1] = new FigureForm(new int[] {   1, 0,
-                                                        1, 1,
-                                                        0, 1}, 2);
-            color = 3;
-        }
-    }
-    class FigureZIGrev : FallingFigureStandart
-    {
-        public FigureZIGrev(Stakan st) : base(st)
-        {
-            states = 2;
-            forms = new FigureForm[states];
-            forms[0] = new FigureForm(new int[] {   1, 1, 0,
-                                                        0, 1, 1 }, 3);
-            forms[1] = new FigureForm(new int[] {   0, 1,
-                                                        1, 1,
-                                                        1, 0}, 2);
-            color = 4;
-        }
-    }
-    class FigureSQ : FallingFigureStandart
-    {
-        public FigureSQ(Stakan st) : base(st)
-        {
-            states = 1;
-            forms = new FigureForm[states];
-            forms[0] = new FigureForm(new int[] {   1, 1,
-                                                        1, 1 }, 2);
-            color = 5;
-        }
-    }
-    class FigureLINE : FallingFigureStandart
-    {
-        public FigureLINE(Stakan st) : base(st)
-        {
-            states = 2;
-            forms = new FigureForm[states];
-            forms[0] = new FigureForm(new int[] { 1, 1, 1, 1 }, 4);
-            forms[1] = new FigureForm(new int[] { 1, 1, 1, 1 }, 1);
-            color = 6;
-        }
-    }
-    class FigureT : FallingFigureStandart
-    {
-        public FigureT(Stakan st) : base(st)
-        {
-            states = 4;
-            forms = new FigureForm[states];
-            forms[0] = new FigureForm(new int[] {   1, 1, 1,
-                                                        0, 1, 0 }, 3);
-            forms[1] = new FigureForm(new int[] {   0, 1,
-                                                        1, 1,
-                                                        0, 1}, 2);
-            forms[2] = new FigureForm(new int[] {   0, 1, 0,
-                                                        1, 1, 1 }, 3);
-            forms[3] = new FigureForm(new int[] {   1, 0,
-                                                        1, 1,
-                                                        1, 0}, 2);
-            color = 7;
-        }
-    }
-    class Bonus : FallingFigure
-    {
-        bool placed = false;
-        public Bonus(Stakan st) : base(st)
-        {
-            color = 8;
-        }
-        public override bool check()
-        {
-            if (posX >= stakan.columns || posY >= stakan.rows) return false;
-            if (posX < 0 || posY < 0) return false;
-
-            if (stakan.check(posX, posY)) return false;
-            if (placed) return false;
-            return true;
-        }
-        public override void place()
-        {
-            for (int y = posY + 1; y < stakan.rows; y++)
-            {
-                if (!stakan.check(posX, y) && !placed)
-                {
-                    placed = true;
-                    stakan.place(posX, y, color);
-                }
-            }
-            if (!placed) stakan.place(posX, posY, color);
-        }
-        public override void rotateLeft()
-        {
-            //
-        }
-        public override void rotateRight()
-        {
-            // 
-        }
-        public override bool spawn()
-        {
-            posX = stakan.columns / 2;
-            posY = 0;
-
-            if (!check()) return false;
-            return true;
-        }
-        public override FigureForm currentForm()
-        {
-            return new FigureForm(new int[] { 1 }, 1);
-        }
-    } // точка которая занимает вторую свободную позицию в стакане выбранной колонне или первую если нет второй
-
-
-
 
 }
 

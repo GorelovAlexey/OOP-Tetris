@@ -9,6 +9,9 @@ namespace Tetris
 {
     class GameController
     {
+        public event EventHandler GamePausedHandler;
+
+
         List<Keys> moveR = new List<Keys>();
         List<Keys> moveL = new List<Keys>();
         List<Keys> rotateR = new List<Keys>();
@@ -28,7 +31,7 @@ namespace Tetris
         int prevScore;
         int scoreToLvlup = 100;
 
-        bool paused = true;
+        public bool paused { get; private set; }
         public GameController(Game _G)
         {
             G = _G;
@@ -39,6 +42,8 @@ namespace Tetris
             moveL.Add(Keys.Left);
             rotateR.Add(Keys.X);
             rotateL.Add(Keys.Z);
+            moveD.Add(Keys.Down);
+            moveD.Add(Keys.S);
             pause.Add(Keys.Space);
             restart.Add(Keys.R);
 
@@ -48,6 +53,8 @@ namespace Tetris
             timer.Start();
 
             prevScore = G.score;
+
+            paused = true;
         }
 
         private void GameTick(object sender, EventArgs e)
@@ -67,7 +74,11 @@ namespace Tetris
             }                       
         }
 
-        public event
+        void OnGamePaused(EventArgs e)
+        {
+            if (GamePausedHandler != null) GamePausedHandler(this, e);
+        }
+
 
         public void Input(KeyEventArgs e)
         {
@@ -80,7 +91,11 @@ namespace Tetris
                 if (rotateR.Contains(k)) G.RotateR();
                 if (rotateL.Contains(k)) G.RotateL();
             }
-            if (pause.Contains(k)) paused = !paused;
+            if (pause.Contains(k))
+            {
+                paused = !paused;
+                OnGamePaused(new EventArgs());
+            }
         }
 
 

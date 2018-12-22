@@ -35,14 +35,16 @@ namespace Tetris
             
             float cellWidth = P.Width / cup.GetLength(0);
             float cellHeight = P.Height / cup.GetLength(1);
+            
+
 
             // Рисуем главное поле и фигуру на нем 
             Bitmap bmp = new Bitmap(P.Width, P.Height);
             Graphics draw = Graphics.FromImage(bmp);
 
-            for (int x = 0; x < cup.GetLength(0); x++) // рисуем то что есть в стакане
+            for (int x = 0; x < columns; x++) // рисуем то что есть в стакане
             {
-                for (int y = 0; y < cup.GetLength(1); y++)
+                for (int y = 0; y < rows; y++)
                 {
                     if (x >= xPos && x < xPos + width && y >= yPos && y < yPos + height)
                     {
@@ -58,7 +60,7 @@ namespace Tetris
         void drawRect(Graphics graphics, float x0, float y0, float w, float h, int color)
         {
             SolidBrush brush = new SolidBrush(colors[color]);
-            RectangleF rect = new RectangleF(x0, y0, w, h);
+            RectangleF rect = new RectangleF(x0*w, y0*h, w, h);
             graphics.FillRectangle(brush, rect);
         }
                 

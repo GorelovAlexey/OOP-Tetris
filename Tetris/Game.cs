@@ -33,7 +33,7 @@ namespace Tetris
             if (columns < 6) columns = 5;
             if (columns > 100) columns = 100;
 
-            cup = new int[rows, columns];
+            cup = new int[columns, rows];
             RND = new Random(DateTime.Now.Millisecond);
 
             SetFigures();
@@ -60,7 +60,6 @@ namespace Tetris
                 cup = currentFigure.Put(cup);
                 SetFigures();
                 if (!currentFigure.Check(cup)) GameOver();
-                OnNextFigureChanged(new EventArgs());
             }
             OnCupChanged(new EventArgs());
         }
@@ -106,6 +105,8 @@ namespace Tetris
                 currentFigure = ChooseRandomFig(false);
             }
             nextFigure = ChooseRandomFig();
+            OnCupChanged(new EventArgs());
+            OnNextFigureChanged(new EventArgs());
         }
         FallingFigure ChooseRandomFig(bool bonus = true) // Выбор случайной формы фигры - если бонус истина то может выпасть бонусная форма (точка)
         {
@@ -160,6 +161,49 @@ namespace Tetris
             }
         }
 
+        void Clear()
+        {
+            int clearedRows = 0;
+            int columns = cup.GetLength(0);
+            int rows = cup.GetLength(1);
+
+            for (int y = rows - 1; y>= clearedRows; y--)
+            {
+                while (RowIsFull(y))
+                {
+                    RowClear(y);
+                    clearedRows++;
+                }
+                // Проверяем 
+            }
+            score += clearedRows * 10 + (clearedRows / 2) * 10 + (clearedRows / 3) * 10 + (clearedRows / 4) * 10;
+        }
+        bool RowIsFull (int row)
+        {
+            bool full = true;
+            if (row < cup.GetLength(1))
+            {
+                for (int x = 0; x < cup.GetLength(0); x++) if (cup[x, row] == 0) full = false;
+            }
+            return full;
+        }
+        void RowClear(int row)
+        {
+            for (int y = row; y > 0; y--)
+            {
+                for (int x = 0; x < cup.GetLength(0); x++)
+                {
+                    cup[x, y] = cup[x, y - 1];
+                }
+            }
+            for (int x = 0; x < cup.GetLength(0); x++)
+            {
+                cup[x, 0] = 0;
+            }
+        }
+
+
+
 
 
         abstract class FallingFigure
@@ -185,7 +229,7 @@ namespace Tetris
                         int figureLength = forms[0].GetLength(0);
                         int cupLength = cup.GetLength(0);
                         posX = cupLength / 2 - figureLength / 2;
-                        if (posX < 0 || posX >= figureLength - cupLength) posX = 0;
+                        if (posX < 0 || posX >= cupLength - figureLength) posX = 0;
                     }
             }
 
@@ -305,7 +349,7 @@ namespace Tetris
                 {
                     for (int y = 0; y < forms[state].GetLength(1); y++)
                     {
-                        if (forms[state][x, y]) cloneCup[x, y] = color;
+                        if (forms[state][x, y]) cloneCup[x+posX, y+posY] = color;
                     }
                 }
                 return cloneCup;
@@ -318,6 +362,7 @@ namespace Tetris
                     for (int y = 0; y < form.GetLength(1); y++)
                     {
                         if (forms[state][x, y]) form[x, y] = color;
+                        else form[x, y] = 0;
                     }
                 }
                 return form;                
@@ -334,15 +379,15 @@ namespace Tetris
                                         { true, false},
                                         { true, true } });
 
-                forms.Add(new bool[,] { { true, true, true},
-                                        { false, false, true}});
+                forms.Add(new bool[,] { { false, false, true},
+                                        { true, true, true}});
 
                 forms.Add(new bool[,] { { true, true},
                                         { false, true},
                                         { false, true} });
 
-                forms.Add(new bool[,] { { true, false, false},
-                                        { true, true, true} });                
+                forms.Add(new bool[,] { { true, true, true} ,
+                                        { true, false, false}  });                
                 SetupFigure(cup);
             }
         }
@@ -356,15 +401,15 @@ namespace Tetris
                                         { false, true},
                                         { true, true } });
 
-                forms.Add(new bool[,] { { false, false, true },
-                                        { true, true, true} });
+                forms.Add(new bool[,] { { true, true, true},
+                                         { false, false, true }});
 
                 forms.Add(new bool[,] { { true, true},
                                         { true, false},
                                         { true, false} });
 
-                forms.Add(new bool[,] { { true, true, true },
-                                        { true, false, false} });
+                forms.Add(new bool[,] { { true, false, false},
+                                        { true, true, true } });
                 SetupFigure(cup);
             }
         }
@@ -378,8 +423,8 @@ namespace Tetris
                                         { true, true},
                                         { true, false } });
 
-                forms.Add(new bool[,] { { false, true, true },
-                                        { true, true, false} });
+                forms.Add(new bool[,] { { true, true, false},
+                                         { false, true, true }});
                 SetupFigure(cup);
             }
         }
@@ -393,8 +438,8 @@ namespace Tetris
                                         { true, true},
                                         { false, true } });
 
-                forms.Add(new bool[,] { { true, true, false },
-                                        { false, true, true} });
+                forms.Add(new bool[,] { { false, true, true} ,
+                                        { true, true, false }});
                 SetupFigure(cup);
             }
         }
@@ -415,8 +460,8 @@ namespace Tetris
             {
                 color = 6;
                 forms = new List<bool[,]>();
-                forms.Add(new bool[,] { { true }, { true }, { true }, { true } });
-                forms.Add(new bool[,] { { true, true, true, true } });
+                forms.Add(new bool[4,1] { { true }, { true }, { true }, { true } });
+                forms.Add(new bool[1,4] { { true, true, true, true } });
                 SetupFigure(cup);
             }
         }
@@ -456,7 +501,7 @@ namespace Tetris
                 if (posX < 0 || posY < 0) return false;
                 if (placed) return false;
                 if (cup[posX, posY] != 0) return false;
-                throw new NotImplementedException();
+                return true;
             }
             public override int[,] GetForm()
             {
