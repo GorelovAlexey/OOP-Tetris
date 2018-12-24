@@ -19,6 +19,9 @@ namespace Tetris
         List<Keys> moveD = new List<Keys>();
         List<Keys> pause = new List<Keys>();
         List<Keys> restart = new List<Keys>();
+        List<Keys> exit = new List<Keys>();
+ 
+
 
         Timer timer;
 
@@ -62,7 +65,7 @@ namespace Tetris
             if (!paused && !G.gameOver)
             {
                 timePassed += timer.Interval;
-                if (timePassed == timeForTurn)
+                if (timePassed >= timeForTurn)
                 {
                     G.Down();
                     timePassed = 0;
@@ -87,7 +90,7 @@ namespace Tetris
             {
                 if (moveR.Contains(k)) G.Right();
                 if (moveL.Contains(k)) G.Left();
-                if (moveD.Contains(k)) G.Down();
+                if (moveD.Contains(k)) timePassed = timeForTurn;
                 if (rotateR.Contains(k)) G.RotateR();
                 if (rotateL.Contains(k)) G.RotateL();
             }
