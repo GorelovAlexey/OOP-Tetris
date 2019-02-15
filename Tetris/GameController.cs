@@ -7,10 +7,15 @@ using System.Windows.Forms;
 
 namespace Tetris
 {
+
+    /*
+    управление игрой
+    */
+
     class GameController
     {
         public event EventHandler GamePausedHandler;
-
+        public event EventHandler LevelChangedHandler;
 
         List<Keys> moveR = new List<Keys>();
         List<Keys> moveL = new List<Keys>();
@@ -20,8 +25,6 @@ namespace Tetris
         List<Keys> pause = new List<Keys>();
         List<Keys> restart = new List<Keys>();
         List<Keys> exit = new List<Keys>();
- 
-
 
         Timer timer;
 
@@ -30,9 +33,8 @@ namespace Tetris
         int defaultTimeForTurn = 1000;
         int timeForTurn = 1000;
         int timePassed = 0;
-        int scoreGain = 0;
-        int prevScore;
-        int scoreToLvlup = 100;
+        int scorePerLevel = 200;
+        public int level { get; private set;}
 
         public bool paused { get; private set; }
         public GameController(Game _G)
@@ -41,21 +43,24 @@ namespace Tetris
 
             moveR.Add(Keys.D);
             moveR.Add(Keys.Right);
+
             moveL.Add(Keys.A);
             moveL.Add(Keys.Left);
-            rotateR.Add(Keys.X);
-            rotateL.Add(Keys.Z);
+
             moveD.Add(Keys.Down);
             moveD.Add(Keys.S);
+
+            rotateR.Add(Keys.X);
+            rotateL.Add(Keys.Z);
+
             pause.Add(Keys.Space);
             restart.Add(Keys.R);
+            exit.Add(Keys.Escape);
 
             timer = new Timer();
             timer.Tick += GameTick;
             timer.Interval = 25;
             timer.Start();
-
-            prevScore = G.score;
 
             paused = true;
         }
@@ -69,10 +74,6 @@ namespace Tetris
                 {
                     G.Down();
                     timePassed = 0;
-                    if (G.score != prevScore)
-                    {
-                        if (prevScore < G.score) scoreGain = G.score - prevScore;
-                    }
                 }
             }                       
         }
@@ -80,6 +81,13 @@ namespace Tetris
         void OnGamePaused(EventArgs e)
         {
             if (GamePausedHandler != null) GamePausedHandler(this, e);
+        }
+
+        //DODELAT
+        void OnLevelChanged(EventArgs e)
+        {
+            EventHandler h = this.LevelChangedHandler;
+            if (h != null) h(this, e);
         }
 
 
@@ -93,6 +101,13 @@ namespace Tetris
                 if (moveD.Contains(k)) timePassed = timeForTurn;
                 if (rotateR.Contains(k)) G.RotateR();
                 if (rotateL.Contains(k)) G.RotateL();
+                if (restart.Contains(k))
+                {
+                    G.Restart();
+                    timeForTurn = defaultTimeForTurn;
+                    level = 0;
+                }
+                if (exit.Contains(k)) Application.Exit();
             }
             if (pause.Contains(k))
             {
@@ -100,7 +115,7 @@ namespace Tetris
                 OnGamePaused(new EventArgs());
             }
         }
-
+        
 
     }
 }
