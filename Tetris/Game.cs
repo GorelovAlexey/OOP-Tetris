@@ -58,6 +58,7 @@ namespace Tetris
             if (!canDo)
             {
                 cup = currentFigure.Put(cup);
+                Clear();
                 SetFigures();
                 if (!currentFigure.Check(cup)) GameOver();
             }
@@ -74,6 +75,16 @@ namespace Tetris
             var st = currentFigure.state;
             currentFigure.RotateRight(cup);
             if (st != currentFigure.state) OnCupChanged(new EventArgs());
+        }
+
+        public void Restart()
+        {
+            cup = new int[cup.GetLength(0), cup.GetLength(1)];
+            RND = new Random(DateTime.Now.Millisecond);
+            currentFigure = null;
+            nextFigure = null;
+            score = 0;
+            SetFigures();
         }
 
         public int[,] GetCurrentFigure ()
@@ -110,8 +121,8 @@ namespace Tetris
         }
         FallingFigure ChooseRandomFig(bool bonus = true) // Выбор случайной формы фигры - если бонус истина то может выпасть бонусная форма (точка)
         {
-            int options = bonus ? 8 : 7;
-            switch (RND.Next(options))
+            int rndMax = bonus ? 8 : 7;
+            switch (RND.Next(rndMax))
             {
                 case 0:
                     return new FigureGE(cup);
@@ -130,9 +141,8 @@ namespace Tetris
                 case 7:
                     return new Bonus(cup);
                 default:
-                    return new Bonus(cup); // Не должно достигаться, но вдруг
+                    return new FigureSQ(cup); // Не должно достигаться, но вдруг
             }
-
         }
         
         void OnGameOverReached(EventArgs e) // событие которое просходит когда игра завершается
@@ -143,7 +153,6 @@ namespace Tetris
                 handler(this, e);
             }
         }
-
         void OnNextFigureChanged(EventArgs e)
         {
             EventHandler handler = NextFigureChanged;
@@ -176,7 +185,7 @@ namespace Tetris
                 }
                 // Проверяем 
             }
-            score += clearedRows * 10 + (clearedRows / 2) * 10 + (clearedRows / 3) * 10 + (clearedRows / 4) * 10;
+            score += clearedRows * 40 + (clearedRows / 2) * 20 + (clearedRows / 3) * 160 + (clearedRows / 4) * 840;
         }
         bool RowIsFull (int row)
         {
@@ -203,6 +212,9 @@ namespace Tetris
         }
 
 
+        //
+        // Классы фигур
+        //
 
 
 
@@ -210,7 +222,7 @@ namespace Tetris
         {
             protected List<bool[,]> forms;
             public int state { get; protected set; }
-            const int emptyColor = 0; 
+            const int emptyColor = 0;         
             public int color { get; protected set; } // Код для цвета 0 или любой другой стандартный, другие задаются
             public int posX { get; protected set; }
             public int posY { get; protected set; }
@@ -268,7 +280,6 @@ namespace Tetris
             }
 
         } // класс для фигур которые падают в стакане
-
         abstract class FallingFigureStandart : FallingFigure
         {
             

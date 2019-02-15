@@ -8,6 +8,11 @@ using System.Drawing;
 
 namespace Tetris
 {
+
+
+    /*
+    Рисует поле с фигурами 
+    */
     class GraphicsController
     {
         Color[] colors = new Color[9] {
@@ -21,10 +26,6 @@ namespace Tetris
                 Color.Blue,         // Т фигура
                 Color.White         // Бонус
             };
-
-        public GraphicsController()
-        {
-        }
 
         public void DrawBoardAndFigure(PictureBox P, int [,] cup, int[,] figure, int xPos, int yPos)
         {

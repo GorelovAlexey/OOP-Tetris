@@ -68,9 +68,9 @@
             this.panel1.Padding = new System.Windows.Forms.Padding(3);
             this.panel1.Size = new System.Drawing.Size(596, 769);
             this.panel1.TabIndex = 0;
-            this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
-            this.panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseMove);
-            this.panel1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseUp);
+            this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.StartDragging);
+            this.panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Dragging);
+            this.panel1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.StopDragging);
             // 
             // labelGameEnded
             // 
@@ -90,12 +90,11 @@
             this.pauseLabel.BackColor = System.Drawing.Color.Transparent;
             this.pauseLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.pauseLabel.ForeColor = System.Drawing.SystemColors.Control;
-            this.pauseLabel.Location = new System.Drawing.Point(169, 51);
+            this.pauseLabel.Location = new System.Drawing.Point(174, 45);
             this.pauseLabel.Name = "pauseLabel";
-            this.pauseLabel.Size = new System.Drawing.Size(111, 660);
+            this.pauseLabel.Size = new System.Drawing.Size(113, 681);
             this.pauseLabel.TabIndex = 22;
             this.pauseLabel.Text = "PAUSED";
-            this.pauseLabel.Visible = false;
             // 
             // pictureBoxMain
             // 
@@ -300,9 +299,9 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Tetris";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseDown);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.Form1_MouseUp);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.StartDragging);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Dragging);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.StopDragging);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxMain)).EndInit();

@@ -28,7 +28,9 @@ namespace Tetris
         List<Score> scoreBoard;
         string path = @"score"; // Путь и имя файла с таблицей рекордов
         // Музыка 
-        string[] musicPathes = { @"music/BigCarTheft.mp3", @"music/Cycles.mp3", @"music/Marauder.mp3" };
+        string[] musicPathes = { @"Resourses/Music/BigCarTheft.mp3",
+            @"Resourses/Music/Cycles.mp3",
+            @"Resourses/Music/Marauder.mp3" };
         IWavePlayer waveOutDevice;
         AudioFileReader audioFileReader;
         bool musicPlaying;
@@ -92,35 +94,13 @@ namespace Tetris
             }
         }
 
-        /// Код для претягивания экрана за края 
-        /// Перемещение за держа за саму форму
-        /// ОБЬЕДИНИТЬ???????????????????
-        private void Form1_MouseDown(object sender, MouseEventArgs e)
-        {
-            isDragging = true;
-            mousePickPos = new Point(e.X,e.Y); // позиция мыши относительно левого верхнего края формы
-        }
-        private void Form1_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (isDragging)
-            {
-                Point tmp = new Point(Location.X, Location.Y);
-                tmp.X += e.X - mousePickPos.X;
-                tmp.Y += e.Y - mousePickPos.Y;
-                Location = tmp;
-            }
-        }
-        private void Form1_MouseUp(object sender, MouseEventArgs e)
-        {
-            isDragging = false;
-        }
-        //Перемещение окна дергая за Панель1
-        private void panel1_MouseDown(object sender, MouseEventArgs e)
+        // Код для претягивания экрана за края 
+        private void StartDragging(object sender, MouseEventArgs e)
         {
             isDragging = true;
             mousePickPos = new Point(e.X, e.Y); // позиция мыши относительно левого верхнего края формы
         }
-        private void panel1_MouseMove(object sender, MouseEventArgs e)
+        private void Dragging(object sender, MouseEventArgs e)
         {
             if (isDragging)
             {
@@ -130,13 +110,12 @@ namespace Tetris
                 Location = tmp;
             }
         }
-        private void panel1_MouseUp(object sender, MouseEventArgs e)
+        private void StopDragging(object sender, MouseEventArgs e)
         {
-            this.isDragging = false;
+            isDragging = false;
         }
-        
-        
-        
+
+
         // считывание при нажатии кнопки
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -234,13 +213,12 @@ namespace Tetris
         {
             Application.Exit();
         }
-
         private void labelHowToPlay_Click(object sender, EventArgs e)
         {
-            if (input != null) input.Input(new KeyEventArgs(Keys.Space));
-
+            if (input != null)
+                if (!input.paused) input.Input(new KeyEventArgs(Keys.Space));
             string text;
-            text = "                                Тетрис Клон\n";
+            text = "       Тетрис Клон\n";
             text += "Управление:\n";
             text += "   Переместить фигру вправо/ влево/ вниз:  D / A / S или стрелочки\n";
             text += "   Повернуть фигуру вправо/ влево:         Z / X \n";
@@ -253,24 +231,28 @@ namespace Tetris
             var caption = "Справка";
             MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-
         private void labelMusic_Click(object sender, EventArgs e)
         {
             musicPlaying = !musicPlaying;
             if (musicPlaying)
             {
-                audioFileReader = new AudioFileReader(musicPathes[new Random().Next(0, 3)]);
-                waveOutDevice = new WaveOut();
-                waveOutDevice.Init(audioFileReader);
-                waveOutDevice.Play();
-                waveOutDevice.Volume = 0.5f;
-
-                waveOutDevice.PlaybackStopped += new EventHandler<StoppedEventArgs>(onMusicStopped);
-
+                try
+                {
+                    audioFileReader = new AudioFileReader(musicPathes[new Random().Next(0, 3)]);
+                    waveOutDevice = new WaveOut();
+                    waveOutDevice.Init(audioFileReader);
+                    waveOutDevice.Play();
+                    waveOutDevice.Volume = 0.5f;
+                    waveOutDevice.PlaybackStopped += new EventHandler<StoppedEventArgs>(onMusicStopped);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    musicPlaying = false;
+                }
             }
             else
             {
-               /// waveOutDevice.PlaybackStopped -= onMusicStopped;
+                //waveOutDevice.PlaybackStopped = null;
                 waveOutDevice.Stop();
             }
         }
@@ -280,7 +262,7 @@ namespace Tetris
             if (musicPlaying)
             {
                 audioFileReader = new AudioFileReader(musicPathes[new Random().Next(0, musicPathes.Length)]);
-                waveOutDevice = new WaveOut(); /// HZ CHTO
+                waveOutDevice = new WaveOut(); 
                 waveOutDevice.Init(audioFileReader);
                 waveOutDevice.Play();
                 waveOutDevice.Volume = 0.5f;      
@@ -288,13 +270,6 @@ namespace Tetris
             }
         }
 
-        private void label1_Click(object sender, EventArgs e)
-        {
-            if (waveOutDevice!=null)
-            {
-                waveOutDevice.Stop();
-            }
-        }
     }
     
 
