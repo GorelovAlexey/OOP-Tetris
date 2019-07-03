@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Tetris
 {
@@ -26,7 +23,7 @@ namespace Tetris
 
 
 
-        public Game(int columns, int rows, int diff)
+        public Game(int columns, int rows)
         {
             if (rows < 6) rows = 5;
             if (rows > 100) rows = 100;
@@ -76,7 +73,6 @@ namespace Tetris
             currentFigure.RotateRight(cup);
             if (st != currentFigure.state) OnCupChanged(new EventArgs());
         }
-
         public void Restart()
         {
             cup = new int[cup.GetLength(0), cup.GetLength(1)];
@@ -84,6 +80,7 @@ namespace Tetris
             currentFigure = null;
             nextFigure = null;
             score = 0;
+            gameOver = false;
             SetFigures();
         }
 
@@ -222,14 +219,9 @@ namespace Tetris
         {
             protected List<bool[,]> forms;
             public int state { get; protected set; }
-            const int emptyColor = 0;         
             public int color { get; protected set; } // Код для цвета 0 или любой другой стандартный, другие задаются
             public int posX { get; protected set; }
             public int posY { get; protected set; }
-            public FallingFigure(int[,] cup)
-            {
-                
-            }
 
             protected void SetupFigure (int [,] cup)
             {
@@ -281,9 +273,7 @@ namespace Tetris
 
         } // класс для фигур которые падают в стакане
         abstract class FallingFigureStandart : FallingFigure
-        {
-            
-            public FallingFigureStandart(int[,] cup) : base(cup) { }
+        {           
 
             public override bool Check(int[,] cup)
             {
@@ -382,7 +372,7 @@ namespace Tetris
 
         class FigureGE : FallingFigureStandart
         { 
-            public FigureGE(int[,] cup) : base(cup)
+            public FigureGE(int[,] cup) 
             {
                 color = 1;
                 forms = new List<bool[,]>();
@@ -404,7 +394,7 @@ namespace Tetris
         }
         class FigureGErev : FallingFigureStandart
         {
-            public FigureGErev(int[,] cup) : base(cup)
+            public FigureGErev(int[,] cup) 
             {
                 color = 2;
                 forms = new List<bool[,]>();
@@ -426,7 +416,7 @@ namespace Tetris
         }
         class FigureZIG : FallingFigureStandart
         {
-            public FigureZIG(int[,] cup) : base(cup)
+            public FigureZIG(int[,] cup) 
             {
                 color = 3;
                 forms = new List<bool[,]>();
@@ -441,7 +431,7 @@ namespace Tetris
         }
         class FigureZIGrev : FallingFigureStandart
         {
-            public FigureZIGrev(int[,] cup) : base(cup)
+            public FigureZIGrev(int[,] cup) 
             {
                 color = 4;
                 forms = new List<bool[,]>();
@@ -456,7 +446,7 @@ namespace Tetris
         }
         class FigureSQ : FallingFigureStandart
         {
-            public FigureSQ(int[,] cup) : base(cup)
+            public FigureSQ(int[,] cup) 
             {
                 color = 5;
                 forms = new List<bool[,]>();
@@ -467,7 +457,7 @@ namespace Tetris
         }
         class FigureLINE : FallingFigureStandart
         {
-            public FigureLINE(int[,] cup) : base(cup)
+            public FigureLINE(int[,] cup) 
             {
                 color = 6;
                 forms = new List<bool[,]>();
@@ -478,7 +468,7 @@ namespace Tetris
         }
         class FigureT : FallingFigureStandart
         {
-            public FigureT(int[,] cup) : base(cup)
+            public FigureT(int[,] cup) 
             {
                 color = 7;
                 forms = new List<bool[,]>();
@@ -499,7 +489,7 @@ namespace Tetris
         class Bonus : FallingFigure
         {
             bool placed = false;
-            public Bonus(int[,] cup) : base(cup)
+            public Bonus(int[,] cup) 
             {
                 color = 8;
                 forms = new List<bool[,]>();
@@ -542,14 +532,6 @@ namespace Tetris
             }
 
         } // точка которая занимает вторую свободную позицию в стакане выбранной колонне или первую если нет второй
-
-
+        
     }
-
-
-
-
-
-
-
 }

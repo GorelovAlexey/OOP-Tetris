@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using System.Drawing;
 
 namespace Tetris
-{
-
-
-    /*
-    Рисует поле с фигурами 
-    */
+{    
+    //Рисует поле с фигурами 
     class GraphicsController
     {
         Color[] colors = new Color[9] {
@@ -37,8 +28,6 @@ namespace Tetris
             float cellWidth = P.Width / cup.GetLength(0);
             float cellHeight = P.Height / cup.GetLength(1);
             
-
-
             // Рисуем главное поле и фигуру на нем 
             Bitmap bmp = new Bitmap(P.Width, P.Height);
             Graphics draw = Graphics.FromImage(bmp);
@@ -67,6 +56,3 @@ namespace Tetris
                 
     }
 }
-
-
-

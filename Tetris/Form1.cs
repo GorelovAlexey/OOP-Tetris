@@ -1,19 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
-using NAudio;
 using NAudio.Wave;
-
-// нажимая вниз - фигура летит быстрей, но зажимая З или Х фигура слишком быстро крутится
-
-    // Экранов нет, конец игры/ начало игры 
-    // мен.
 
 namespace Tetris
 {
@@ -35,24 +25,27 @@ namespace Tetris
         AudioFileReader audioFileReader;
         bool musicPlaying;
         GameController input;
-        GraphicsController output;    
+        GraphicsController output;
+        Timer timer1= new Timer(); 
 
 
         public Form1()
         {
             InitializeComponent();
-            StartGame();
+            InitializeGame();
+            timer1.Tick += Timer1_Tick;
             timer1.Start();
         }
-        public void StartGame()
+        public void InitializeGame()
         {
-            game = new Game(10, 20, 0); // Строки столбцы уровень сложности
+            game = new Game(10, 20); // Строки столбцы уровень сложности
             game.GameOverEventHandler += game_GameOver;
             game.CupChanged += Game_CupChanged;
             game.NextFigureChanged += Game_NextFigureChanged;
 
             input = new GameController(game);
             input.GamePausedHandler += Input_GamePausedHandler;
+            input.LevelChangedHandler += Level_Changed;
 
             output = new GraphicsController();
 
@@ -76,6 +69,10 @@ namespace Tetris
         {
             output.DrawBoardAndFigure(pictureBoxMain, game.cup, game.GetCurrentFigure(), game.GetFigurePos().Item1, game.GetFigurePos().Item2);
         }
+        void Level_Changed(object sender, EventArgs e)
+        {
+            labelDifficulty.Text = $"level {input.level.ToString()}";
+        }
 
         private void Game_CupChanged(object sender, EventArgs e)
         {
@@ -83,12 +80,12 @@ namespace Tetris
         }
 
         /// Основной тик таймера
-        private void timer1_Tick(object sender, EventArgs e)
+        private void Timer1_Tick(object sender, EventArgs e)
         {
             if (game != null)
             {
                 labelScore.Text = game.score.ToString();
-                labelDifficulty.Text = "level 0";
+                labelDifficulty.Text = input.level.ToString();
                 labelGameEnded.Visible = game.gameOver;
                 if (game.gameOver) pauseLabel.Visible = false;
             }
@@ -233,28 +230,33 @@ namespace Tetris
         }
         private void labelMusic_Click(object sender, EventArgs e)
         {
-            musicPlaying = !musicPlaying;
-            if (musicPlaying)
+            try
             {
-                try
+                musicPlaying = !musicPlaying;
+                if (musicPlaying)
                 {
-                    audioFileReader = new AudioFileReader(musicPathes[new Random().Next(0, 3)]);
-                    waveOutDevice = new WaveOut();
-                    waveOutDevice.Init(audioFileReader);
-                    waveOutDevice.Play();
-                    waveOutDevice.Volume = 0.5f;
-                    waveOutDevice.PlaybackStopped += new EventHandler<StoppedEventArgs>(onMusicStopped);
+                    try
+                    {
+                        audioFileReader = new AudioFileReader(musicPathes[new Random().Next(0, 3)]);
+                        waveOutDevice = new WaveOut();
+                        waveOutDevice.Init(audioFileReader);
+                        waveOutDevice.Play();
+                        waveOutDevice.Volume = 0.5f;
+                        waveOutDevice.PlaybackStopped += new EventHandler<StoppedEventArgs>(onMusicStopped);
+                    }
+                    catch (Exception ex)
+                    {
+                        musicPlaying = false;
+                    }
                 }
-                catch (DirectoryNotFoundException)
+                else
                 {
-                    musicPlaying = false;
+                    //waveOutDevice.PlaybackStopped = null;
+                    waveOutDevice.Stop();
                 }
             }
-            else
-            {
-                //waveOutDevice.PlaybackStopped = null;
-                waveOutDevice.Stop();
-            }
+            catch (Exception ex) { }
+       
         }
 
         public void onMusicStopped(object sender, StoppedEventArgs e)
@@ -269,9 +271,6 @@ namespace Tetris
                 waveOutDevice.PlaybackStopped += new EventHandler<StoppedEventArgs>(onMusicStopped);
             }
         }
-
-    }
-    
-
+    }  
 }
 

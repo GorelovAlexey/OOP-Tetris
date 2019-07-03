@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.panel1 = new System.Windows.Forms.Panel();
             this.labelGameEnded = new System.Windows.Forms.Label();
             this.pauseLabel = new System.Windows.Forms.Label();
@@ -44,7 +43,6 @@
             this.label3 = new System.Windows.Forms.Label();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.labelExit = new System.Windows.Forms.Label();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.labelHowToPlay = new System.Windows.Forms.Label();
             this.labelMusic = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
@@ -203,7 +201,7 @@
             this.labelDifficulty.Name = "labelDifficulty";
             this.labelDifficulty.Size = new System.Drawing.Size(130, 53);
             this.labelDifficulty.TabIndex = 20;
-            this.labelDifficulty.Text = "level10";
+            this.labelDifficulty.Text = "level 0";
             this.labelDifficulty.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // labelScoreBoard
@@ -249,11 +247,6 @@
             this.labelExit.TabIndex = 0;
             this.labelExit.Text = "X";
             this.labelExit.Click += new System.EventHandler(this.labelExit_Click);
-            // 
-            // timer1
-            // 
-            this.timer1.Interval = 10;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // labelHowToPlay
             // 
@@ -325,7 +318,6 @@
         private System.Windows.Forms.PictureBox pictureBoxNextFigure;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.PictureBox pictureBoxMain;
-        private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.Label pauseLabel;
         private System.Windows.Forms.Label labelDifficulty;
         private System.Windows.Forms.Label label3;

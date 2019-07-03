@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Tetris
-{
-
-    /*
-    управление игрой
-    */
+{        
+    //управление игрой
 
     class GameController
     {
@@ -33,8 +27,8 @@ namespace Tetris
         int defaultTimeForTurn = 1000;
         int timeForTurn = 1000;
         int timePassed = 0;
-        int scorePerLevel = 200;
-        public int level { get; private set;}
+        int scorePerLevel = 100;
+        public int level { get; private set; }
 
         public bool paused { get; private set; }
         public GameController(Game _G)
@@ -65,7 +59,7 @@ namespace Tetris
             paused = true;
         }
 
-        private void GameTick(object sender, EventArgs e)
+        void GameTick(object sender, EventArgs e)
         {
             if (!paused && !G.gameOver)
             {
@@ -74,20 +68,30 @@ namespace Tetris
                 {
                     G.Down();
                     timePassed = 0;
+                    if (G.score > level * scorePerLevel && level <= 20)
+                    {
+                        SetLevel(level + 1);
+                        timeForTurn -= 20;
+                    } 
                 }
             }                       
         }
 
         void OnGamePaused(EventArgs e)
         {
-            if (GamePausedHandler != null) GamePausedHandler(this, e);
+            GamePausedHandler?.Invoke(this, e);
         }
+        
 
-        //DODELAT
         void OnLevelChanged(EventArgs e)
         {
-            EventHandler h = this.LevelChangedHandler;
-            if (h != null) h(this, e);
+            LevelChangedHandler?.Invoke(this, e);
+        }
+
+        void SetLevel(int lvl)
+        {
+            level = lvl;
+            OnLevelChanged(new EventArgs());
         }
 
 
@@ -100,22 +104,20 @@ namespace Tetris
                 if (moveL.Contains(k)) G.Left();
                 if (moveD.Contains(k)) timePassed = timeForTurn;
                 if (rotateR.Contains(k)) G.RotateR();
-                if (rotateL.Contains(k)) G.RotateL();
-                if (restart.Contains(k))
-                {
-                    G.Restart();
-                    timeForTurn = defaultTimeForTurn;
-                    level = 0;
-                }
-                if (exit.Contains(k)) Application.Exit();
+                if (rotateL.Contains(k)) G.RotateL();                
             }
+            if (restart.Contains(k))
+            {
+                G.Restart();
+                timeForTurn = defaultTimeForTurn;
+                SetLevel(0);
+            }
+            if (exit.Contains(k)) Application.Exit();
             if (pause.Contains(k))
             {
                 paused = !paused;
                 OnGamePaused(new EventArgs());
             }
-        }
-        
-
+        }   
     }
 }
