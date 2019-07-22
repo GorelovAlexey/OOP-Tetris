@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
 using NAudio.Wave;
+using System.Linq;
 
 namespace Tetris
 {
@@ -26,7 +27,12 @@ namespace Tetris
         bool musicPlaying;
         GameController input;
         GraphicsController output;
-        Timer timer1= new Timer(); 
+        Timer timer1= new Timer();
+
+        readonly string[] musicExtentions =
+        {
+            ".mp3", ".wav", ".m4a", ".m4v", ".mov", ".mp4"
+        };
 
 
         public Form1()
@@ -228,6 +234,7 @@ namespace Tetris
             var caption = "Справка";
             MessageBox.Show(text, caption, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
         private void labelMusic_Click(object sender, EventArgs e)
         {
             try
@@ -237,11 +244,13 @@ namespace Tetris
                 {
                     try
                     {
-                        audioFileReader = new AudioFileReader(musicPathes[new Random().Next(0, 3)]);
+                        var tracks = FindTracks();
+                        var track = tracks[new Random().Next(tracks.Count)];
+                        audioFileReader = new AudioFileReader(track);
+                        audioFileReader.Volume = 0.3f;
                         waveOutDevice = new WaveOut();
                         waveOutDevice.Init(audioFileReader);
                         waveOutDevice.Play();
-                        waveOutDevice.Volume = 0.5f;
                         waveOutDevice.PlaybackStopped += new EventHandler<StoppedEventArgs>(onMusicStopped);
                     }
                     catch (Exception ex)
@@ -264,12 +273,48 @@ namespace Tetris
             if (musicPlaying)
             {
                 audioFileReader = new AudioFileReader(musicPathes[new Random().Next(0, musicPathes.Length)]);
+                audioFileReader.Volume = 0.5f;
                 waveOutDevice = new WaveOut(); 
                 waveOutDevice.Init(audioFileReader);
-                waveOutDevice.Play();
-                waveOutDevice.Volume = 0.5f;      
+                waveOutDevice.Play();  
                 waveOutDevice.PlaybackStopped += new EventHandler<StoppedEventArgs>(onMusicStopped);
             }
+        }
+
+        public void StartTrack()
+        {     
+            try
+            {
+                audioFileReader = new AudioFileReader(musicPathes[new Random().Next(0, musicPathes.Length)])
+                {
+                    Volume = 0.5f
+                };
+                waveOutDevice.Init(audioFileReader);
+                waveOutDevice.Play();
+                waveOutDevice.PlaybackStopped += new EventHandler<StoppedEventArgs>(onMusicStopped);
+                musicPlaying = true;
+            }
+            catch (Exception)
+            {
+                musicPlaying = false;
+                waveOutDevice.Stop();
+            }
+            
+        }
+
+        public List<string> FindTracks()
+        {
+            var ret = new List<string>();
+
+            var dir = new DirectoryInfo(@"Resourses/Music");
+
+            if (dir.Exists)
+            {
+                var files = dir.GetFiles();
+                foreach (var f in files) if (musicExtentions.Any(s => s.ToLower().Contains(f.Extension.ToLower()))) ret.Add(f.FullName);
+            }
+
+            return ret;
         }
     }  
 }
